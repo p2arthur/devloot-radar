@@ -1,0 +1,37 @@
+import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {pathToFileURL} from 'node:url';
+const {chromium}=await import(process.env.PLAYWRIGHT_MODULE ? pathToFileURL(process.env.PLAYWRIGHT_MODULE).href : 'playwright');
+const browser=await chromium.launch({headless:true});
+const out='artifacts/qa/data-mode';await mkdir(out,{recursive:true});
+try {
+ const page=await browser.newPage({viewport:{width:1440,height:1000}});
+ const errors=[];const writes=[];
+ page.on('pageerror',error=>errors.push(error.message));
+ page.on('request',r=>{if(!['GET','HEAD'].includes(r.method()))writes.push(r.method())});
+ await page.goto('http://127.0.0.1:4334/repo/demo/six-hour-notebook');
+ await page.getByText('No GitHub page (fictional demo)',{exact:true}).waitFor();
+ assert.equal(await page.locator('a[href^="https://github.com/"]').count(),0);
+ assert.equal(await page.locator('.profile-avatar').getAttribute('src'),'/brand/project-default.png');
+ const data=await (await page.request.get('http://127.0.0.1:4321/api/v1/catalog')).json();
+ assert.equal(data.mode,'live');assert.ok(data.items.length>0);
+ const repo=data.items[0];
+ await page.goto('http://127.0.0.1:4321/repo/'+repo.fullName);
+ const github=page.getByRole('link',{name:'View on GitHub ↗',exact:true});await github.waitFor();
+ assert.equal(await github.getAttribute('href'),'https://github.com/'+repo.fullName);
+ assert.equal(await page.getByText('Demo preview',{exact:true}).count(),0);
+ await page.waitForFunction(()=>{const i=document.querySelector('.profile-avatar');return i?.complete&&i.naturalWidth>0&&i.src.startsWith('https://github.com/')});
+ await page.getByText('Observation history is unavailable.',{exact:true}).waitFor();
+ assert.equal(await page.locator('.chart svg').count(),0);
+ const githubStatus=(await page.request.get('https://github.com/'+repo.fullName)).status();
+ assert.equal(githubStatus,200);
+ await page.screenshot({path:out+'/live-profile.png',fullPage:true});
+ await page.goto('http://127.0.0.1:4321/');
+ await page.locator('.repository').first().waitFor();
+ await page.locator('.repository-avatar:visible').first().scrollIntoViewIfNeeded();
+ await page.waitForTimeout(1000);
+ await page.screenshot({path:out+'/live-list.png'});
+ assert.deepEqual(errors,[]);assert.deepEqual(writes,[]);
+ const result={demoGitHubLink:'absent',liveCatalog:{repositories:data.items.length,mode:data.mode},verifiedRepository:repo.fullName,githubStatus,liveOwnerAvatar:'loaded',liveHistory:'unavailable, no fabricated chart',pageErrors:errors,networkWrites:writes};
+ await writeFile(out+'/results.json',JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result,null,2));
+} finally {await browser.close()}

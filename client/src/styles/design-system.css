@@ -1,0 +1,158 @@
+@import './workshop-fonts.css';
+
+/* The application and Storybook share these palettes and surface primitives. */
+@layer base {
+  :root,
+  .theme-light {
+    color-scheme: light;
+    --bg-base: 246 237 225;
+    --bg-surface: 255 251 245;
+    --bg-elevated: 242 233 221;
+    --bg-hover: 237 224 207;
+    --bg-active: 226 211 191;
+    --border-default: 218 204 186;
+    --border-muted: 234 222 206;
+    --text-primary: 38 34 29;
+    --text-secondary: 103 92 79;
+    --text-muted: 110 96 81;
+    --accent-color: 173 52 20;
+    --accent-color-hover: 157 44 14;
+    --primary-foreground: 255 250 242;
+    --success: 20 105 56;
+    --warning: 117 73 0;
+    --danger: 171 35 40;
+    --info: 26 83 115;
+    --destructive-foreground: 255 255 255;
+    --surface-shadow: 0 5px 16px rgb(0 0 0 / 0.035), inset 0 1px 0 rgb(255 255 255 / 0.6);
+    --hero-shadow: 0 12px 32px rgb(0 0 0 / 0.05), inset 0 1px 0 rgb(255 255 255 / 0.6);
+  }
+
+  .dark,
+  .theme-natural-mystic {
+    color-scheme: dark;
+    --bg-base: 17 23 25;
+    --bg-surface: 24 32 35;
+    --bg-elevated: 32 42 45;
+    --bg-hover: 41 52 55;
+    --bg-active: 49 61 65;
+    --border-default: 73 87 94;
+    --border-muted: 46 59 64;
+    --text-primary: 242 245 245;
+    --text-secondary: 176 191 197;
+    --text-muted: 151 167 174;
+    --accent-color: 245 135 107;
+    --accent-color-hover: 255 156 130;
+    --primary-foreground: 17 23 25;
+    --success: 112 211 160;
+    --warning: 239 201 107;
+    --danger: 255 143 147;
+    --info: 135 192 218;
+    --destructive-foreground: 17 23 25;
+    --surface-shadow: 0 5px 16px rgb(0 0 0 / 0.1), inset 0 1px 0 rgb(255 255 255 / 0.04);
+    --hero-shadow: 0 12px 32px rgb(0 0 0 / 0.14), inset 0 1px 0 rgb(255 255 255 / 0.05);
+  }
+
+  /* Starry Night retains its violet canvas and the shared action/status palette. */
+  .theme-starry-night {
+    --bg-base: 20 17 27;
+    --bg-surface: 27 23 36;
+    --bg-elevated: 36 30 48;
+    --bg-hover: 47 39 61;
+    --bg-active: 57 47 72;
+    --border-default: 90 77 111;
+    --border-muted: 58 47 73;
+  }
+
+  :root {
+    --font-sans: 'IBM Plex Sans', sans-serif;
+    --font-display: 'Archivo', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+    --radius-sm: 8px;
+    --radius-control: 12px;
+    --radius: 18px;
+    --radius-panel: 22px;
+    --radius-hero: 28px;
+    --button-radius: 999px;
+    --control-shadow: inset 0 1px 0 rgb(var(--text-primary) / 0.035);
+  }
+
+  :root,
+  .theme-light,
+  .theme-natural-mystic,
+  .theme-starry-night {
+    --background: var(--bg-base);
+    --foreground: var(--text-primary);
+    --card: var(--bg-surface);
+    --card-foreground: var(--text-primary);
+    --popover: var(--bg-surface);
+    --popover-foreground: var(--text-primary);
+    --primary: var(--accent-color);
+    --secondary: var(--bg-elevated);
+    --secondary-foreground: var(--text-primary);
+    --muted: var(--bg-hover);
+    --muted-foreground: var(--text-secondary);
+    --accent: var(--accent-color);
+    --accent-foreground: var(--primary-foreground);
+    --destructive: var(--danger);
+    --border: var(--border-default);
+    --input: var(--border-default);
+    --ring: var(--accent-color);
+  }
+
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-display);
+  }
+}
+
+@layer components {
+  .surface-panel {
+    border: 1px solid rgb(var(--border-default));
+    border-radius: var(--radius-panel);
+    background: rgb(var(--bg-surface));
+    box-shadow: var(--surface-shadow);
+  }
+  .surface-hero {
+    position: relative;
+    isolation: isolate;
+    border: 1px solid rgb(var(--border-default) / 0.85);
+    border-radius: var(--radius-hero);
+    background: radial-gradient(ellipse at 100% 0, rgb(var(--accent) / 0.08), transparent 60%), rgb(var(--bg-surface));
+    box-shadow: var(--hero-shadow);
+  }
+  .surface-hero-map::before {
+    content: '';
+    position: absolute;
+    inset: var(--hero-art-inset, 0);
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background: rgb(var(--accent));
+    opacity: 0.08;
+    mask: url('/community-world-pixels.svg') center / contain no-repeat;
+  }
+  .button-primary {
+    border: 1px solid rgb(var(--accent-color));
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+  }
+  .button-primary:hover:not(:disabled) {
+    box-shadow: 0 2px 4px rgb(0 0 0 / 0.1);
+  }
+  [data-slot='button'] {
+    font-family: var(--font-sans);
+    transition: background-color 160ms, color 160ms, border-color 160ms, box-shadow 160ms;
+  }
+  @media (max-width: 639px) {
+    .surface-hero {
+      border-radius: var(--radius-panel);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-slot='button'] {
+      transition: none;
+    }
+  }
+}

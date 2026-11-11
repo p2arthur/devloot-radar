@@ -1,0 +1,19 @@
+{
+  "name": "@devloot-radar/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit -p tsconfig.json",
+    "start": "tsx src/index.ts",
+    "collector": "tsx src/collector/index.ts"
+  },
+  "dependencies": {
+    "@fastify/compress": "9.3.0",
+    "@fastify/static": "10.1.10",
+    "fastify": "5.12.8",
+    "tsx": "4.23.15",
+    "zod": "4.6.7",
+    "@devloot-radar/shared": "*"
+  }
+}

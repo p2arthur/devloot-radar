@@ -1,0 +1,36 @@
+{
+  "name": "devloot-radar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "client",
+    "server",
+    "shared"
+  ],
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "dev": "npm run dev -w @devloot-radar/client",
+    "dev:api": "tsx watch --env-file-if-exists=.env server/src/index.ts",
+    "dev:collector": "tsx watch --env-file-if-exists=.env.collector server/src/collector/index.ts",
+    "check": "npm run check --workspaces --if-present",
+    "test": "vitest run",
+    "build": "npm run check && npm run build -w @devloot-radar/client",
+    "start": "tsx --env-file-if-exists=.env server/src/index.ts",
+    "start:collector": "tsx --env-file-if-exists=.env.collector server/src/collector/index.ts",
+    "preview": "npm run preview -w @devloot-radar/client",
+    "test:e2e": "node scripts/browser-qa.mjs",
+    "test:features": "node scripts/features-qa.mjs",
+    "measure:browser": "node scripts/measure-browser.mjs",
+    "check:coverage": "tsx scripts/check-coverage.ts",
+    "package:release": "node scripts/package-release.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "~5.9.3",
+    "vitest": "5.1.0",
+    "playwright": "1.65.0"
+  }
+}

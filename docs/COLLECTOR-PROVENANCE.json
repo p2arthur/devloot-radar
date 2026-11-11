@@ -1,0 +1,20 @@
+{
+  "source": "DevLoot studio working-tree collector, November 10 2026",
+  "sha256": {
+    "server/trends.ts": "5802f7d993bc535a88f3d3420dadc70c438e25636094d0e0fcfaf7deb44e95e0",
+    "server/trend-store.ts": "7955174b2933e845d5749ad0be7a800e875c3963604c19295b8bc6637c625840",
+    "server/trend-score.ts": "89a1c2423df73c8beeebf726e993f927cdd7a61f460e001b3432b99cb66c687c",
+    "server/gh-archive.ts": "ea74fbfbf4e75c55a40e5073bdfe958b534f8809b187a63c2c621e57c35aa4be",
+    "server/github-auth.ts": "2ac6c9c999238686ec62876a429a1e080c344ba3eb5431d3815402be2eb5cc0d",
+    "server/trend-service.ts": "d6ba3a990b004d11adddda0bc8f9d7e99df7843c07bfa26c38c7a417d4628117",
+    "server/trend-routes.ts": "ae79bd8dbde5b8beabe32999e77a7357da427a635e39af7bb5c42c1a0c0de83d",
+    "server/trend-main.ts": "1a42ee56675cbd577eb8c8424a9b66c7737008708c0f758d239f412dad8a8bf6",
+    "shared/trends.ts": "1b7cc996480a1bfc057bb1cf54919638e6bbbc011c39b08d0838cc2421d1806f"
+  },
+  "adaptations": [
+    "Local imports and tests",
+    "Loopback default listener",
+    "Read-only catalog/history routes; studio mutation routes excluded"
+  ],
+  "database": "No data files copied; no retention or scoring changes"
+}
