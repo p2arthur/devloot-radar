@@ -12,7 +12,8 @@
     "node": "24.x"
   },
   "scripts": {
-    "dev": "npm run dev -w @devloot-radar/client",
+    "dev": "node scripts/dev.mjs",
+    "dev:client": "npm run dev -w @devloot-radar/client",
     "dev:api": "tsx watch --env-file-if-exists=.env server/src/index.ts",
     "dev:collector": "tsx watch --env-file-if-exists=.env.collector server/src/collector/index.ts",
     "check": "npm run check --workspaces --if-present",

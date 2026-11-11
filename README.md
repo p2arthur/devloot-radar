@@ -21,29 +21,42 @@ The npm workspaces share one lockfile. The public server and ingestion engine ar
 Requires **Node 24** (`.nvmrc`) and npm. No Docker or sibling repository is required.
 
 ```sh
+git clone https://github.com/p2arthur/devloot-radar.git
+cd devloot-radar
 npm ci
-npm run build
-npm start
+npm run dev
 ```
 
-Open [http://127.0.0.1:4321](http://127.0.0.1:4321). Without configuration, this is visibly labeled **demo mode** with fictional repositories and charts. Demo repositories have no GitHub links; live failures never fall back to demo.
+Open [http://127.0.0.1:4320](http://127.0.0.1:4320). Without configuration, this is visibly labeled **demo mode** with fictional repositories and charts. Demo repositories have no GitHub links; live failures never fall back to demo.
 
-For frontend development, run `npm run dev:api` and `npm run dev` in separate terminals, then open [http://127.0.0.1:4320](http://127.0.0.1:4320). The Vite dev server proxies `/api` to the loopback API.
+For development, run `npm run dev`, then open [http://127.0.0.1:4320](http://127.0.0.1:4320). This starts the API on loopback port 4321, waits for readiness, and starts Vite on port 4320. It stops both on Ctrl+C or if either process exits; it never starts ingestion. These development ports are fixed to match the Vite proxy. Root `.env` is loaded only by the API. Unconfigured clones use labeled demo mode; configure live mode below for real repositories.
 
-## Use the existing collector
+For separate terminals, use `npm run dev:api` and `npm run dev:client`. An `ECONNREFUSED 127.0.0.1:4321` proxy error means the API is not listening; start `dev:api`, or stop the separate servers and use `npm run dev`.
+
+For a built preview, run `npm run build` followed by `npm start`, then open [http://127.0.0.1:4321](http://127.0.0.1:4321). Stop the development command first because both modes use API port 4321.
+
+## Connect to the existing Railway deployment
+
+The existing **Railway collector is already running ingestion** and owns the stored observations. This repository contains its extracted source and the Radar client/API; pushing this repository does not replace or deploy that service. To use live data locally, connect the read-only API to that existing deployment. You do not need to start a local collector or install SQLite separately.
 
 Copy `.env.example` to `.env` and configure only the server-side settings:
 
+```sh
+cp -n .env.example .env
+```
+
 ```dotenv
 DATA_MODE=live
-TRENDS_REMOTE_URL=https://your-collector.example
-TRENDS_API_TOKEN=your-existing-server-token
+TRENDS_REMOTE_URL=https://YOUR-EXISTING-COLLECTOR-DOMAIN
+TRENDS_API_TOKEN=YOUR-EXISTING-COLLECTOR-TOKEN
 HOST=127.0.0.1
 PORT=4321
 PUBLIC_ORIGIN=http://127.0.0.1:4321
 ```
 
-Restart `npm start`. The API makes authenticated, read-only catalog/history requests and sends only validated public fields to the browser. Never put credentials in `VITE_*` variables or commit `.env` files. Production requires HTTPS, live mode and an explicit `PUBLIC_ORIGIN`.
+Obtain the existing collector's HTTPS domain and token from its maintainer or authorized Railway project access. `TRENDS_REMOTE_URL` is the origin only, without `/api/trends`; `TRENDS_API_TOKEN` is the collector's bearer secret, **not a Railway account/API token**. The deployment address and credentials are intentionally absent from public source. See the [Railway connection guide](docs/RAILWAY.md) for where to find these settings, verify live mode, and diagnose failures.
+
+Restart `npm run dev` (or `npm start` for the built preview). The API makes authenticated, read-only catalog/history requests and sends only validated public fields to the browser. Never put credentials in `VITE_*` variables or commit `.env` files. Production requires HTTPS, live mode and an explicit `PUBLIC_ORIGIN`.
 
 ## Run the packaged engine separately
 
