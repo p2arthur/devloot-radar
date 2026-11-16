@@ -10,6 +10,12 @@ export function scoreTrend(points: TrendSnapshot[], now: number): TrendMetrics {
   if (now - latest.at > 2 * HOUR) return { ...empty, signal: 'stale', reason: 'No recent observation. Waiting for the collector to check this repository.' };
   function baseline(hours: number) {
     const target = latest!.at - hours * HOUR;
+    // Preserve the already-deployed nearest-observation rule (48–72 minutes).
+    if (hours === 1) return sorted.reduce<TrendSnapshot | undefined>((best, point) => {
+      const distance = Math.abs(point.at - target);
+      if (distance > HOUR * .2) return best;
+      return !best || distance < Math.abs(best.at - target) ? point : best;
+    }, undefined);
     // At most a 20% error, capped at 30 minutes; require the full window.
     return sorted.filter(p => p.at <= target && target - p.at <= Math.min(hours * HOUR * .2, HOUR / 2)).at(-1);
   }

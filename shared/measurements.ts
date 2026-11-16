@@ -10,6 +10,7 @@ export function ageRepository(repo: Repository, now: number): Repository {
         hour: null,
         sixHours: null,
         day: null,
+        week: null,
         acceleration: null,
         score: 0,
         reason: "No recent observation. Totals are last observed values.",

@@ -66,7 +66,7 @@ export class TrendCollector {
   response(imported: Map<string, string> = new Map()): TrendsResponse {
     const now = this.now();
     const tracked = new Set(this.active().map(repo => repo.id));
-    const items = this.store.repositories().map(repo => ({ ...repo, ...scoreTrend(this.store.history(repo.id, now), now), projectId: imported.get(repo.fullName.toLowerCase()) || null, tracking: tracked.has(repo.id) }));
+    const items = this.store.repositories().map(repo => ({ ...repo, ...scoreTrend(this.store.history(repo.id, now), now), week: this.store.weeklyDelta(repo.id, now), projectId: imported.get(repo.fullName.toLowerCase()) || null, tracking: tracked.has(repo.id) }));
     items.sort((a, b) => b.score - a.score || b.firstSeen - a.firstSeen || b.stars - a.stars);
     const { pending, failures: _failures, ...archive } = this.store.archiveState();
     const { lastAuthMode: _lastAuthMode, ...state } = this.store.state();

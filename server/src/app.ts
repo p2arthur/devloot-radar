@@ -92,11 +92,13 @@ export function createApp(
       }
     },
   );
-  app.get<{ Querystring: { ids?: string } }>(
+  app.get<{ Querystring: { ids?: string; window?: string } }>(
     "/api/v1/history",
     async (request, reply) => {
       const raw = request.query.ids ?? "";
       const ids = raw.split(",").map(Number);
+      const window = request.query.window ?? '24h';
+      if (window !== '24h' && window !== '7d') return reply.code(400).send({ error: 'Choose window=24h or window=7d.' });
       if (
         !/^[1-9]\d*(,[1-9]\d*)*$/.test(raw) ||
         ids.length > 25 ||
@@ -127,7 +129,7 @@ export function createApp(
                   };
                 try {
                   if (!readHistory) throw new HistoryError(501);
-                  const history = await readHistory(id, "24h");
+                  const history = await readHistory(id, window);
                   return {
                     repositoryId: id,
                     history,
