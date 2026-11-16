@@ -206,7 +206,7 @@ it("isolates day/week caches, coalescing, and unavailable capabilities", async (
  expect((await partial(1,"24h")).points).toEqual(points);
 });
 it("passes explicit history windows while keeping default list previews on one day", async () => {
- const reader=vi.fn(async (id:number, window: "24h"|"7d")=>publicHistory({...input,repositoryId:id,window},id,now,window));
+ const reader=vi.fn(async (id:number, window: "24h"|"7d"|"14d"|"31d")=>publicHistory({...input,repositoryId:id,window},id,now,window));
  const app=createApp(async()=>demoCatalog(now),reader);
  expect((await app.inject("/api/v1/repos/1/history?window=7d")).json().window).toBe("7d");
  await app.inject("/api/v1/history?ids=1");
@@ -215,4 +215,15 @@ it("passes explicit history windows while keeping default list previews on one d
  expect((await app.inject("/api/v1/history?ids=1&window=30d")).statusCode).toBe(400);
  expect((await app.inject("/api/v1/repos/999/history?window=7d")).statusCode).toBe(404);
  await app.close();
+});
+
+it.each(["14d", "31d"] as const)("reads %s with a separate cache key and passes it through batch routes", async window => {
+ const reader=vi.fn(async (id:number, range: "24h"|"7d"|"14d"|"31d")=>publicHistory({...input,repositoryId:id,window:range},id,now,range));
+ const app=createApp(async()=>demoCatalog(now),reader);
+ try {
+  expect((await app.inject(`/api/v1/repos/1/history?window=${window}`)).json().window).toBe(window);
+  const batch=(await app.inject(`/api/v1/history?ids=1&window=${window}`)).json();
+  expect(batch.items[0].history.window).toBe(window);
+  expect(reader.mock.calls).toEqual([[1,window],[1,window]]);
+ }finally{await app.close()}
 });
