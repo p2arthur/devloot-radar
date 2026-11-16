@@ -32,6 +32,14 @@ export class TrendStore {
   history(id: number, now: number): TrendSnapshot[] {
     return this.db.prepare('SELECT at,stars,forks FROM trend_snapshots WHERE repo_id=? AND at>=? ORDER BY at').all(id, now - 26 * HOUR) as unknown as TrendSnapshot[];
   }
+  // Separate indexed reads preserve the existing intraday scoring window and scheduling.
+  weeklyDelta(id: number, now: number): number | null {
+    const latest = this.db.prepare('SELECT at,stars FROM trend_snapshots WHERE repo_id=? AND at<=? ORDER BY at DESC LIMIT 1').get(id, now) as { at: number; stars: number } | undefined;
+    if (!latest || now - latest.at > 2 * HOUR) return null;
+    const target = latest.at - 7 * 24 * HOUR;
+    const baseline = this.db.prepare('SELECT stars FROM trend_snapshots WHERE repo_id=? AND at>=? AND at<=? ORDER BY at DESC LIMIT 1').get(id, target - HOUR / 2, target) as { stars: number } | undefined;
+    return baseline ? latest.stars - baseline.stars : null;
+  }
   // Public chart reads use fixed windows; scoring keeps its original 26-hour history.
   chartHistory(id: number, now: number, window: '24h' | '7d'): TrendSnapshot[] {
     if (window !== '24h' && window !== '7d') throw new Error('Invalid history window');

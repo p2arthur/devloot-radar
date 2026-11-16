@@ -46,6 +46,7 @@ export const repositorySchema = z.object({
   hour: delta,
   sixHours: delta,
   day: delta,
+  week: delta.optional(),
   acceleration: z.number().nullable(),
   score: z.number(),
   signal: z.enum(["emerging", "growing", "watching", "new", "stale"]),

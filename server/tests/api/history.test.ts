@@ -205,12 +205,14 @@ it("isolates day/week caches, coalescing, and unavailable capabilities", async (
  await expect(partial(1,"7d")).rejects.toMatchObject({status:501});
  expect((await partial(1,"24h")).points).toEqual(points);
 });
-it("passes explicit history windows while keeping list previews on one day", async () => {
+it("passes explicit history windows while keeping default list previews on one day", async () => {
  const reader=vi.fn(async (id:number, window: "24h"|"7d")=>publicHistory({...input,repositoryId:id,window},id,now,window));
  const app=createApp(async()=>demoCatalog(now),reader);
  expect((await app.inject("/api/v1/repos/1/history?window=7d")).json().window).toBe("7d");
  await app.inject("/api/v1/history?ids=1");
- expect(reader.mock.calls).toEqual([[1,"7d"],[1,"24h"]]);
+ await app.inject("/api/v1/history?ids=1&window=7d");
+ expect(reader.mock.calls).toEqual([[1,"7d"],[1,"24h"],[1,"7d"]]);
+ expect((await app.inject("/api/v1/history?ids=1&window=30d")).statusCode).toBe(400);
  expect((await app.inject("/api/v1/repos/999/history?window=7d")).statusCode).toBe(404);
  await app.close();
 });

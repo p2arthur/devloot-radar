@@ -21,7 +21,7 @@ const { app, collector } = createTrendService({
   archiveEnabled: process.env.TRENDS_ARCHIVE_ENABLED === 'true',
 });
 try {
-  await app.listen({ host: process.env.HOST || '127.0.0.1', port });
+  await app.listen({ host: process.env.HOST || (process.env.RAILWAY_ENVIRONMENT_ID ? '0.0.0.0' : '127.0.0.1'), port });
 } catch (error) { await app.close(); throw error; }
 collector.start();
 console.log(`Trend collector listening on port ${port}.`);

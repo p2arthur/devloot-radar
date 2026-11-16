@@ -34,6 +34,11 @@ afterEach(async () => {
 });
 
 describe('trend evidence and scoring', () => {
+  it('preserves the live nearest-hour boundary and prefers the older observation on ties', () => {
+    expect(scoreTrend([point(55 / 60, 100), point(76 / 60, 90), point(0, 110)], now).hour).toBe(10);
+    expect(scoreTrend([point(65 / 60, 90), point(55 / 60, 100), point(0, 110)], now).hour).toBe(20);
+    expect(scoreTrend([point(47 / 60, 100), point(0, 110)], now).hour).toBeNull();
+  });
   it('requires observed history and does not turn popularity into momentum', () => {
     expect(scoreTrend([point(0, 100_000)], now)).toMatchObject({ hour: null, acceleration: null, score: 0, signal: 'new' });
   });
