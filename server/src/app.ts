@@ -71,7 +71,7 @@ export function createApp(
         !window.success
       )
         return reply.code(400).send({
-          error: "A valid repository ID and window=24h or window=7d are required.",
+          error: "A valid repository ID and window=24h, 7d, 14d or 31d are required.",
         });
       try {
         const catalog = await readCatalog();
@@ -98,7 +98,7 @@ export function createApp(
       const raw = request.query.ids ?? "";
       const ids = raw.split(",").map(Number);
       const window = request.query.window ?? '24h';
-      if (window !== '24h' && window !== '7d') return reply.code(400).send({ error: 'Choose window=24h or window=7d.' });
+      if (window !== '24h' && window !== '7d' && window !== '14d' && window !== '31d') return reply.code(400).send({ error: 'Choose window=24h, 7d, 14d or 31d.' });
       if (
         !/^[1-9]\d*(,[1-9]\d*)*$/.test(raw) ||
         ids.length > 25 ||

@@ -9,7 +9,7 @@ export interface TrendRepository {
 }
 export interface TrendMetrics {
   hour: number | null; sixHours: number | null; day: number | null;
-  week?: number | null;
+  week?: number | null; twoWeeks?: number | null; month?: number | null;
   acceleration: number | null; score: number; signal: 'emerging' | 'growing' | 'watching' | 'new' | 'stale'; reason: string;
 }
 export interface TrendItem extends TrendRepository, TrendMetrics { projectId: string | null; tracking: boolean }

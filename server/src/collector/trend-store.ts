@@ -33,17 +33,18 @@ export class TrendStore {
     return this.db.prepare('SELECT at,stars,forks FROM trend_snapshots WHERE repo_id=? AND at>=? ORDER BY at').all(id, now - 26 * HOUR) as unknown as TrendSnapshot[];
   }
   // Separate indexed reads preserve the existing intraday scoring window and scheduling.
-  weeklyDelta(id: number, now: number): number | null {
+  weeklyDelta(id: number, now: number): number | null { return this.periodDelta(id, now, 7); }
+  periodDelta(id: number, now: number, days: 7 | 14 | 31): number | null {
     const latest = this.db.prepare('SELECT at,stars FROM trend_snapshots WHERE repo_id=? AND at<=? ORDER BY at DESC LIMIT 1').get(id, now) as { at: number; stars: number } | undefined;
     if (!latest || now - latest.at > 2 * HOUR) return null;
-    const target = latest.at - 7 * 24 * HOUR;
+    const target = latest.at - days * 24 * HOUR;
     const baseline = this.db.prepare('SELECT stars FROM trend_snapshots WHERE repo_id=? AND at>=? AND at<=? ORDER BY at DESC LIMIT 1').get(id, target - HOUR / 2, target) as { stars: number } | undefined;
     return baseline ? latest.stars - baseline.stars : null;
   }
   // Public chart reads use fixed windows; scoring keeps its original 26-hour history.
-  chartHistory(id: number, now: number, window: '24h' | '7d'): TrendSnapshot[] {
-    if (window !== '24h' && window !== '7d') throw new Error('Invalid history window');
-    const hours = window === '7d' ? 7 * 24 : 24;
+  chartHistory(id: number, now: number, window: '24h' | '7d' | '14d' | '31d'): TrendSnapshot[] {
+    if (!['24h', '7d', '14d', '31d'].includes(window)) throw new Error('Invalid history window');
+    const hours = { '24h': 24, '7d': 168, '14d': 336, '31d': 744 }[window];
     return this.db.prepare('SELECT at,stars,forks FROM trend_snapshots WHERE repo_id=? AND at>=? AND at<=? ORDER BY at').all(id, now - hours * HOUR, now) as unknown as TrendSnapshot[];
   }
   state(): StoredTrendState {
@@ -70,9 +71,9 @@ export class TrendStore {
   archiveChecked(id: number, now: number) { this.db.prepare('INSERT OR REPLACE INTO trend_archive_checked VALUES (?,?)').run(id, now); }
   prune(now: number) {
     this.db.prepare('DELETE FROM trend_archive_checked WHERE at<?').run(now - 24 * HOUR);
-    this.db.prepare('DELETE FROM trend_snapshots WHERE at<?').run(now - 8 * 24 * HOUR);
+    this.db.prepare('DELETE FROM trend_snapshots WHERE at<?').run(now - 32 * 24 * HOUR);
     // Keep user decisions, but discard inactive discovery records after 30 days.
-    for (const repo of this.repositories()) if (!repo.saved && !repo.dismissed && repo.lastSeen < now - 30 * 24 * HOUR) {
+    for (const repo of this.repositories()) if (!repo.saved && !repo.dismissed && Math.max(repo.lastSeen, repo.checkedAt) < now - 30 * 24 * HOUR) {
       this.db.prepare('DELETE FROM trend_repositories WHERE id=?').run(repo.id);
       this.db.prepare('DELETE FROM trend_snapshots WHERE repo_id=?').run(repo.id);
     }

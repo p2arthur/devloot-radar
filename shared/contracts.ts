@@ -47,6 +47,8 @@ export const repositorySchema = z.object({
   sixHours: delta,
   day: delta,
   week: delta.optional(),
+  twoWeeks: delta.optional(),
+  month: delta.optional(),
   acceleration: z.number().nullable(),
   score: z.number(),
   signal: z.enum(["emerging", "growing", "watching", "new", "stale"]),
@@ -76,11 +78,11 @@ export const pointSchema = z.object({
   stars: count,
   forks: count,
 });
-export const historyWindowSchema = z.enum(["24h", "7d"]);
+export const historyWindowSchema = z.enum(["24h", "7d", "14d", "31d"]);
 export type HistoryWindow = z.infer<typeof historyWindowSchema>;
 export const historyDuration = (window: HistoryWindow) =>
-  window === "7d" ? 7 * 86_400_000 : 86_400_000;
-export const historyPointLimit = (window: HistoryWindow) => window === "7d" ? 2000 : 200;
+  ({ "24h": 1, "7d": 7, "14d": 14, "31d": 31 }[window]) * 86_400_000;
+export const historyPointLimit = (window: HistoryWindow) => window === "24h" ? 200 : 2000;
 export const historySchema = z.object({
   repositoryId: idSchema,
   window: historyWindowSchema,

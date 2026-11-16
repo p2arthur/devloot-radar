@@ -28,3 +28,19 @@ it('rejects stale measurements and future samples without changing retention', (
   expect(store.weeklyDelta(1, now)).toBeNull();
   expect(store.db.prepare('SELECT count(*) AS count FROM trend_snapshots').get()).toEqual({ count: 3 });
 });
+
+it.each([14, 31] as const)('measures %s-day deltas only with a complete boundary', days => {
+  store.snapshot(1, { at: now - days * 24 * HOUR - 15 * 60000, stars: 100, forks: 1 });
+  store.snapshot(1, { at: now, stars: 80, forks: 1 });
+  expect(store.periodDelta(1, now, days)).toBe(-20);
+  store.snapshot(2, { at: now - (days - 1) * 24 * HOUR, stars: 100, forks: 1 });
+  store.snapshot(2, { at: now, stars: 100, forks: 1 });
+  expect(store.periodDelta(2, now, days)).toBeNull();
+  const window = days === 14 ? '14d' : '31d';
+  expect(store.chartHistory(1, now, window)).toEqual([{ at: now, stars: 80, forks: 1 }]);
+});
+it('retains 31-day baseline samples and prunes only beyond the 32-day margin', () => {
+  for (const days of [7, 14, 31, 32, 33]) store.snapshot(1, { at: now - days * 24 * HOUR, stars: days, forks: 1 });
+  store.prune(now);
+  expect(store.db.prepare('SELECT stars FROM trend_snapshots ORDER BY at').all()).toEqual([{stars:32},{stars:31},{stars:14},{stars:7}]);
+});
